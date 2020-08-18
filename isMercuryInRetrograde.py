@@ -29,19 +29,24 @@ def get_days_from_leap_year(start_year, end_year):
     return leap_year
 
 
-def main():
-    """
-    Main function
-    """
+def figure(years, mercury_prograde, mercury_retrograde):
+    plot.figure()
+    plot.plot(years[:-1], mercury_prograde, '-g', linewidth=1)
+    plot.plot(years[:-1], mercury_retrograde, '-r', linewidth=3)
+    plot.ylim(0, 360)
+    plot.title("Mercury Ecliptic Longitude degrees AD 2018 to 2038")
+    plot.show()
 
+
+def compute_retrograde():
     planets = skyfield.api.load("de421.bsp")
     earth = planets["earth"]
     mercury = planets["mercury"]
 
-    year_zero = 2008
-    year_final = 2035
+    year_zero = 2018
+    year_final = 2038
     days = np.linspace(1, (year_final - year_zero) * 365, 10000)
-    years = year_zero + days / (365 + get_days_from_leap_year(year_zero, 2035))
+    years = year_zero + days / (365 + get_days_from_leap_year(year_zero, year_final))
 
     time_scale = skyfield.api.load.timescale()
     time = time_scale.utc(year_zero, 1, days)
@@ -49,21 +54,25 @@ def main():
     latitude, longitude, distance = earth.at(time).observe(mercury).ecliptic_latlon()
 
     longds = (180.0 / np.pi) * longitude.radians
-    londel = longds[1:] - longds[:1]
+    londel = longds[1:] - longds[:-1]
 
     londel[londel < -300] += 360.0
-    londel[londel > +300] += 360.0
+    londel[londel > +300] -= 360.0
 
     prograde = londel > 0.0
-    mercury_prograde = longds.copy()[:1]
-    mercury_retrograde = longds.copy()[:1]
+    mercury_prograde = longds.copy()[:-1]
+    mercury_retrograde = longds.copy()[:-1]
 
-    plot.figure()
-    plot.plot(years[:1], mercury_prograde, '-b', linewidth=1)
-    plot.plot(years[:1], mercury_prograde, '-r', linewidth=3)
-    plot.ylim(0, 360)
-    plot.title("Mercury Ecliptic Longitude degrees AD 2008 to 2035")
-    plot.show()
+    mercury_prograde[~prograde] = np.nan
+    mercury_retrograde[prograde] = np.nan
+    return years, mercury_prograde, mercury_retrograde
+
+def main():
+    """
+    Main function
+    """
+    years, mercury_prograde, mercury_retrograde = compute_retrograde()
+    figure(years, mercury_prograde, mercury_retrograde)
 
     return 0
 
