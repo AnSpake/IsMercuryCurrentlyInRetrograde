@@ -2,15 +2,20 @@
 A quick python script to know if you can use "mercury is in retrograde" as an excuse in your life.
 
 # Install
-> virtualenv env
-> source env/bin/activate
-> pip install -r requirements.txt
+```bash
+virtualenv env
+source env/bin/activate
+pip install -r requirements.txt
+```
 
 # Run
-> ./isMercuryInRetrograde.py
+```bash
+./isMercuryInRetrograde.py
+```
 
 # Spoiler
 2025 and 2032 are going to be shitty years. Brace yourselves.
+![alt text](https://github.com/AnSpake/IsMercuryCurrentlyInRetrograde/blob/master/mercury_retrograde_result.png)
 
 # Notes
 Should base retrograde calculation on this:
@@ -21,4 +26,5 @@ https://astronomy.stackexchange.com/questions/18832/mathematically-calculate-if-
 
 Next todo:
 - Argparse
+- Answer the question bro
 - Find in which Astro sign, mercury is retrograding to
