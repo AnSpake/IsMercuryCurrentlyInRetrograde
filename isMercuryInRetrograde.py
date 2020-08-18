@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from jplephem import Ephemeris
 import matplotlib.pyplot as plot
 import matplotlib.dates
 import numpy as np
