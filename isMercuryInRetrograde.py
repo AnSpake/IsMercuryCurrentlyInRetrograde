@@ -46,8 +46,8 @@ def compute_retrograde():
     earth = planets["earth"]
     mercury = planets["mercury"]
 
-    year_zero = 2018
-    year_final = 2038
+    year_zero = 2024
+    year_final = 2026
     days = np.linspace(1, (year_final - year_zero) * 365, 10000)
     years = year_zero + days / (365 + get_days_from_leap_year(year_zero, year_final))
 
