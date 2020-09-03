@@ -17,6 +17,10 @@ import skyfield.api
 # Express resulted vector in spherical coordinates
 
 
+# Retrograde (from the Earth, inner planet):
+# Move from Greatest ESTERN Elongation {through Inferior Conjuction} to Greatest WESTERN Elongation
+
+
 def get_days_from_leap_year(start_year, end_year):
     """
     Returns how many days we have to count from all the leap years
