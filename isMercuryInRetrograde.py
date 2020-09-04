@@ -9,6 +9,9 @@ import calendar
 import skyfield.api
 
 
+PLANETS = skyfield.api.load("de421.bsp")
+
+
 # Steps:
 # Calculate the apparent angular position of Mercury from Earth in ecliptic coordinates
 # Finde places where the ecliptic longitude is decreasing
@@ -41,10 +44,19 @@ def figure(years, mercury_prograde, mercury_retrograde):
     plt.show()
 
 
+def find_mercury_elongation_degrees(time):
+    earth = PLANETS["earth"]
+    mercury = PLANETS["mercury"]
+    sun = PLANETS["sun"]
+    sun_apparent_pos = earth.at(time).observe(sun).apparent()
+    mercury_apparent_pos = earth.at(time).observe(mercury).apparent()
+    return sun_apparent_pos.separation_from(mercury_apparent_pos).degrees
+
+
 def compute_retrograde():
-    planets = skyfield.api.load("de421.bsp")
-    earth = planets["earth"]
-    mercury = planets["mercury"]
+    earth = PLANETS["earth"]
+    mercury = PLANETS["mercury"]
+    sun = PLANETS["sun"]
 
     year_zero = 2024
     year_final = 2026
