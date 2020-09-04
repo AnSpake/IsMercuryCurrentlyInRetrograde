@@ -53,6 +53,23 @@ def find_mercury_elongation_degrees(time):
     return sun_apparent_pos.separation_from(mercury_apparent_pos).degrees
 
 
+def find_mercury_max_elongation(time_scale, years):
+
+    year_zero, year_final = years
+
+    # fig1
+    time = time_scale.utc(year_zero,
+               1,
+               range((365 + get_days_from_leap_year(year_zero, year_final)) * (year_final - year_zero)))
+
+    fig, ax = plt.subplots(figsize=(5, 2))
+    ax.plot(time.J, find_mercury_elongation_degrees(time))
+    ax.set(title="Elongation of Mercury in degrees", xlabel="Year")
+    ax.grid()
+    fig.tight_layout()
+    fig.show()
+
+
 def compute_retrograde():
     earth = PLANETS["earth"]
     mercury = PLANETS["mercury"]
@@ -65,6 +82,8 @@ def compute_retrograde():
 
     time_scale = skyfield.api.load.timescale()
     time = time_scale.utc(year_zero, 1, days)
+
+    find_mercury_max_elongation(time_scale, (year_zero, year_final))
 
     latitude, longitude, distance = earth.at(time).observe(mercury).ecliptic_latlon()
 
