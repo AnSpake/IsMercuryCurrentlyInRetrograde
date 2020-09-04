@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import matplotlib.pyplot as plot
+import matplotlib.pyplot as plt
 import matplotlib.dates
 import numpy as np
 import de421
@@ -33,12 +33,12 @@ def get_days_from_leap_year(start_year, end_year):
 
 
 def figure(years, mercury_prograde, mercury_retrograde):
-    plot.figure()
-    plot.plot(years[:-1], mercury_prograde, '-g', linewidth=1)
-    plot.plot(years[:-1], mercury_retrograde, '-r', linewidth=3)
-    plot.ylim(0, 360)
-    plot.title("Mercury Ecliptic Longitude degrees AD 2018 to 2038")
-    plot.show()
+    plt.figure()
+    plt.plot(years[:-1], mercury_prograde, '-g', linewidth=1)
+    plt.plot(years[:-1], mercury_retrograde, '-r', linewidth=3)
+    plt.ylim(0, 360)
+    plt.title("Mercury Ecliptic Longitude degrees AD 2018 to 2038")
+    plt.show()
 
 
 def compute_retrograde():
