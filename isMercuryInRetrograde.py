@@ -62,6 +62,16 @@ def find_mercury_max_elongation(time_scale, years):
                1,
                range((365 + get_days_from_leap_year(year_zero, year_final)) * (year_final - year_zero)))
 
+    find_mercury_elongation_degrees.rough_period = 1.0
+    time_zero = time_scale.utc(year_zero)
+    time_final = time_scale.utc(year_final)
+    time_maxima, values = skyfield.searchlib.find_maxima(time_zero, time_final, find_mercury_elongation_degrees)
+    print(len(time_maxima), "9 maxima should be found")
+
+    # TODO: western or eastern
+    for ti, vi in zip(time_maxima, values):
+        print((ti.utc_strftime("%Y-%m-%d %H:%M "), "%.2f" % vi, "degrees in elongation"))
+
     fig, ax = plt.subplots(figsize=(5, 2))
     ax.plot(time.J, find_mercury_elongation_degrees(time))
     ax.set(title="Elongation of Mercury in degrees", xlabel="Year")
