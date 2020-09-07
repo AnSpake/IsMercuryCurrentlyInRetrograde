@@ -7,6 +7,7 @@ import de421
 import sys
 import calendar
 import skyfield.api
+from skyfield import almanac
 
 
 PLANETS = skyfield.api.load("de421.bsp")
@@ -70,7 +71,16 @@ def find_mercury_max_elongation(time_scale, years):
 
     # TODO: western or eastern
     for ti, vi in zip(time_maxima, values):
-        print((ti.utc_strftime("%Y-%m-%d %H:%M "), "%.2f" % vi, "degrees in elongation"))
+        print(ti.utc_strftime("%Y-%m-%d %H:%M "), "%.2f" % vi, "degrees in elongation")
+
+    # Epita school in paris suburb
+    paris_coord = skyfield.api.Topos('48.568380 N', '21.47808 W')
+    t1 = time_scale.utc(2024, 12, 24)
+    t2 = time_scale.utc(2025, 3, 9)
+    time_cp, values_cp = skyfield.searchlib.find_discrete(t1, t2, almanac.sunrise_sunset(PLANETS, paris_coord))
+    for ti, vi in zip(time_cp, values_cp):
+        print(ti.utc_strftime("%Y-%m-%d %H:%M "), "Sun: ", vi)
+    sys.exit(0)
 
     fig, ax = plt.subplots(figsize=(5, 2))
     ax.plot(time.J, find_mercury_elongation_degrees(time))
@@ -85,7 +95,7 @@ def compute_retrograde():
     mercury = PLANETS["mercury"]
     sun = PLANETS["sun"]
 
-    year_zero = 2024
+    year_zero = 2025
     year_final = 2026
     days = np.linspace(1, (year_final - year_zero) * 365, 10000)
     years = year_zero + days / (365 + get_days_from_leap_year(year_zero, year_final))
