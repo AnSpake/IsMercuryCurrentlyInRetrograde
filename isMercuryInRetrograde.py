@@ -69,9 +69,13 @@ def find_mercury_max_elongation(time_scale, years):
     time_maxima, values = skyfield.searchlib.find_maxima(time_zero, time_final, find_mercury_elongation_degrees)
     print(len(time_maxima), "9 maxima should be found")
 
-    # TODO: western or eastern
     for ti, vi in zip(time_maxima, values):
         print(ti.utc_strftime("%Y-%m-%d %H:%M "), "%.2f" % vi, "degrees in elongation")
+
+    # TODO: western or eastern
+    # Find if planet is visible from the earth
+    # Find when the planet is visible from the eart (after sunset = west) (before sunrise/dawn = eastern)
+    lat, lon, distance = EARTH.at(time).observe(MERCURY).ecliptic_latlon()
 
     # Epita school in paris suburb
     paris_coord = skyfield.api.Topos('48.568380 N', '21.47808 W')
