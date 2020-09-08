@@ -11,6 +11,8 @@ from skyfield import almanac
 
 
 PLANETS = skyfield.api.load("de421.bsp")
+EARTH = PLANETS["earth"]
+MERCURY = PLANETS["mercury"]
 
 
 # Steps:
@@ -46,11 +48,9 @@ def figure(years, mercury_prograde, mercury_retrograde):
 
 
 def find_mercury_elongation_degrees(time):
-    earth = PLANETS["earth"]
-    mercury = PLANETS["mercury"]
     sun = PLANETS["sun"]
-    sun_apparent_pos = earth.at(time).observe(sun).apparent()
-    mercury_apparent_pos = earth.at(time).observe(mercury).apparent()
+    sun_apparent_pos = EARTH.at(time).observe(sun).apparent()
+    mercury_apparent_pos = EARTH.at(time).observe(MERCURY).apparent()
     return sun_apparent_pos.separation_from(mercury_apparent_pos).degrees
 
 
@@ -78,9 +78,6 @@ def find_mercury_max_elongation(time_scale, years):
     t1 = time_scale.utc(2024, 12, 24)
     t2 = time_scale.utc(2025, 3, 9)
     time_cp, values_cp = skyfield.searchlib.find_discrete(t1, t2, almanac.sunrise_sunset(PLANETS, paris_coord))
-    for ti, vi in zip(time_cp, values_cp):
-        print(ti.utc_strftime("%Y-%m-%d %H:%M "), "Sun: ", vi)
-    sys.exit(0)
 
     fig, ax = plt.subplots(figsize=(5, 2))
     ax.plot(time.J, find_mercury_elongation_degrees(time))
@@ -91,9 +88,6 @@ def find_mercury_max_elongation(time_scale, years):
 
 
 def compute_retrograde():
-    earth = PLANETS["earth"]
-    mercury = PLANETS["mercury"]
-    sun = PLANETS["sun"]
 
     year_zero = 2025
     year_final = 2026
@@ -105,7 +99,7 @@ def compute_retrograde():
 
     find_mercury_max_elongation(time_scale, (year_zero, year_final))
 
-    latitude, longitude, distance = earth.at(time).observe(mercury).ecliptic_latlon()
+    latitude, longitude, distance = EARTH.at(time).observe(MERCURY).ecliptic_latlon()
 
     longds = (180.0 / np.pi) * longitude.radians
     londel = longds[1:] - longds[:-1]
