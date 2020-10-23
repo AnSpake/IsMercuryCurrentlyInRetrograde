@@ -53,7 +53,6 @@ def find_mercury_elongation_degrees(time):
     mercury_apparent_pos = EARTH.at(time).observe(MERCURY).apparent()
     return sun_apparent_pos.separation_from(mercury_apparent_pos).degrees
 
-
 def find_mercury_max_elongation(time_scale, years):
 
     year_zero, year_final = years
@@ -67,7 +66,8 @@ def find_mercury_max_elongation(time_scale, years):
     time_zero = time_scale.utc(year_zero)
     time_final = time_scale.utc(year_final)
     time_maxima, values = skyfield.searchlib.find_maxima(time_zero, time_final, find_mercury_elongation_degrees)
-    print(len(time_maxima), "9 maxima should be found")
+    # 3 retrograde per year => 2 elongations max per retrograde
+    print(len(time_maxima), "6 maxima should be found")
 
     for ti, vi in zip(time_maxima, values):
         print(ti.utc_strftime("%Y-%m-%d %H:%M "), "%.2f" % vi, "degrees in elongation")
