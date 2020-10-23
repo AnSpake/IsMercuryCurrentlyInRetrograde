@@ -83,6 +83,14 @@ def find_mercury_max_elongation(time_scale, years):
     t2 = time_scale.utc(2025, 3, 9)
     time_cp, values_cp = skyfield.searchlib.find_discrete(t1, t2, almanac.sunrise_sunset(PLANETS, paris_coord))
 
+    # Compute inferior conjunction
+    conj_t0 = time_scale.utc(year_zero, 1, 1)
+    conj_t1 = time_scale.utc(year_final, 1, 1)
+    inf_conj = almanac.oppositions_conjunctions(PLANETS, MERCURY)
+    conj_t, conj_y = almanac.find_discrete(conj_t0, conj_t1, inf_conj)
+    print(conj_t.utc_iso())
+    print(conj_y)
+
     fig, ax = plt.subplots(figsize=(5, 2))
     ax.plot(time.J, find_mercury_elongation_degrees(time))
     ax.set(title="Elongation of Mercury in degrees", xlabel="Year")
