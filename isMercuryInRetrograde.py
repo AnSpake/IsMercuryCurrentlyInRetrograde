@@ -13,6 +13,7 @@ from skyfield import almanac
 PLANETS = skyfield.api.load("de421.bsp")
 EARTH = PLANETS["earth"]
 MERCURY = PLANETS["mercury"]
+TIME_SCALE = skyfield.api.load.timescale()
 
 
 # Steps:
@@ -53,18 +54,14 @@ def find_mercury_elongation_degrees(time):
     mercury_apparent_pos = EARTH.at(time).observe(MERCURY).apparent()
     return sun_apparent_pos.separation_from(mercury_apparent_pos).degrees
 
-def find_mercury_max_elongation(time_scale, years):
-
-    year_zero, year_final = years
+def find_mercury_max_elongation(year_zero, year_final):
 
     # fig1
-    time = time_scale.utc(year_zero,
-               1,
-               range((365 + get_days_from_leap_year(year_zero, year_final)) * (year_final - year_zero)))
+    time = TIME_SCALE.utc(year_zero, 1, range((365 + get_days_from_leap_year(year_zero, year_final)) * (year_final - year_zero)))
 
     find_mercury_elongation_degrees.rough_period = 116.0
-    time_zero = time_scale.utc(year_zero)
-    time_final = time_scale.utc(year_final)
+    time_zero = TIME_SCALE.utc(year_zero)
+    time_final = TIME_SCALE.utc(year_final)
     time_maxima, values = skyfield.searchlib.find_maxima(time_zero, time_final, find_mercury_elongation_degrees)
 
     # 3~4 retrogrades per year => 2 elongations per retrograde
@@ -92,8 +89,8 @@ def find_mercury_max_elongation(time_scale, years):
     -> 0 indicates an inferior conjunction
     -> 1 indicates a superior conjunction
     """
-    conj_t0 = time_scale.utc(year_zero, 1, 1)
-    conj_t1 = time_scale.utc(year_final, 1, 1)
+    conj_t0 = TIME_SCALE.utc(year_zero, 1, 1)
+    conj_t1 = TIME_SCALE.utc(year_final, 1, 1)
     inf_conj = almanac.oppositions_conjunctions(PLANETS, MERCURY)
     conj_t, conj_y = almanac.find_discrete(conj_t0, conj_t1, inf_conj)
 
@@ -116,10 +113,9 @@ def compute_retrograde():
     days = np.linspace(1, (year_final - year_zero) * 365, 10000)
     years = year_zero + days / (365 + get_days_from_leap_year(year_zero, year_final))
 
-    time_scale = skyfield.api.load.timescale()
-    time = time_scale.utc(year_zero, 1, days)
+    time = TIME_SCALE.utc(year_zero, 1, days)
 
-    find_mercury_max_elongation(time_scale, (year_zero, year_final))
+    find_mercury_max_elongation(year_zero, year_final)
 
     latitude, longitude, distance = EARTH.at(time).observe(MERCURY).ecliptic_latlon()
 
