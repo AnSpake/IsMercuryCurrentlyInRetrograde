@@ -36,6 +36,14 @@ The retrograde does occur when the inner planet is going through the East to the
 West max Elongation but we will not get accurate result.  
 And I'm a bit stuck on finding if it's a East or West Max elongation in a pretty way.
 
+UPDATE 08/07/26:
+It's been a while, forgive todo comments here and there
+Making old branch functional and merging them before reworking this project
+From memories, precise computation were impossible to run on my personal computer
+and had to try elsewhere + I had an idea for the fix on the current bugs but wrote that
+nowhere and completely forgot it so I hope while working back on this, it (or a new idea)
+will come back !
+
 # Progress (2020-only branch)
 | Subject | Progress |  
 | Elongation | DONE |  
