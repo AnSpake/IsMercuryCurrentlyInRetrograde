@@ -77,13 +77,25 @@ def find_mercury_max_elongation(time_scale, years):
     # Find when the planet is visible from the eart (after sunset = west) (before sunrise/dawn = eastern)
     lat, lon, distance = EARTH.at(time).observe(MERCURY).ecliptic_latlon()
 
-    # Compute inferior conjunction
+    """
+    The moment at which a planet is in opposition/conjunction with the Sun is
+    when their ecliptic longitudes are at 0 or 180 degrees difference
+
+    For inner planets like Mercury: they only ever experience conjunctions with
+    the Sun from Earth PoV and can never be in oppositions
+
+    conj_y reads as follows
+    -> 0 indicates an inferior conjunction
+    -> 1 indicates a superior conjunction
+    """
     conj_t0 = time_scale.utc(year_zero, 1, 1)
     conj_t1 = time_scale.utc(year_final, 1, 1)
     inf_conj = almanac.oppositions_conjunctions(PLANETS, MERCURY)
     conj_t, conj_y = almanac.find_discrete(conj_t0, conj_t1, inf_conj)
+
+    inf_conj_date = [conj_t[i] for i, j in enumerate(conj_y) if j == 0]
+
     print(conj_t.utc_iso())
-    print(conj_y)
 
     fig, ax = plt.subplots(figsize=(5, 2))
     ax.plot(time.J, find_mercury_elongation_degrees(time))
