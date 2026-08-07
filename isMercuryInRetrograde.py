@@ -88,8 +88,10 @@ def find_mercury_elongation_degrees(time):
 
 def find_mercury_max_elongation(year_zero, year_final):
 
-    # fig1
-    time = TIME_SCALE.utc(year_zero, 1, range((365 + get_days_from_leap_year(year_zero, year_final)) * (year_final - year_zero)))
+    days = np.array(range((365 + (get_days_from_leap_year(year_zero, year_final) * (year_final - year_zero)))))
+    years = year_zero + days / (365 + get_days_from_leap_year(year_zero, year_final))
+
+    time = TIME_SCALE.utc(year_zero, 1, days)
 
     find_mercury_elongation_degrees.rough_period = 116.0
     time_zero = TIME_SCALE.utc(year_zero)
@@ -128,11 +130,15 @@ def find_mercury_max_elongation(year_zero, year_final):
 
     inf_conj_date = [conj_t[i] for i, j in enumerate(conj_y) if j == 0]
 
-    mercury_retrograde = find_zero(omega, time_maxima[0].tt, inf_conj_date[0].tt)
-    t_station = TIME_SCALE.tt_jd(mercury_retrograde)
+    mercury_cycles = []
+    for i, conj_iter in enumerate(inf_conj_date):
+        east_elong = time_maxima[2 * i]
+        west_elong = time_maxima[(2 * i) + 1]
 
-    mercury_direct = find_zero(omega, inf_conj_date[0].tt, time_maxima[1].tt)
-    t_direct = TIME_SCALE.tt_jd(mercury_direct)
+        mercury_retrograde = find_zero(omega, east_elong.tt, conj_iter.tt)
+        mercury_direct = find_zero(omega, conj_iter.tt, west_elong.tt)
+
+        mercury_cycles.append((TIME_SCALE.tt_jd(mercury_retrograde), TIME_SCALE.tt_jd(mercury_direct)))
 
     print(conj_t.utc_iso())
 
@@ -142,6 +148,8 @@ def find_mercury_max_elongation(year_zero, year_final):
     ax.grid()
     fig.tight_layout()
     fig.show()
+
+    return years, lon, mercury_cycles
 
 
 def compute_retrograde():
@@ -175,8 +183,10 @@ def main():
     """
     Main function
     """
-    years, mercury_prograde, mercury_retrograde = compute_retrograde()
-    figure(years, mercury_prograde, mercury_retrograde)
+    year_zero = 2025
+    year_final = 2026
+
+    years, longitude, retrogrades = find_mercury_max_elongation(year_zero, year_final)
 
     return 0
 
