@@ -66,7 +66,12 @@ def find_mercury_max_elongation(time_scale, years):
     time_zero = time_scale.utc(year_zero)
     time_final = time_scale.utc(year_final)
     time_maxima, values = skyfield.searchlib.find_maxima(time_zero, time_final, find_mercury_elongation_degrees)
-    # 3 retrograde per year => 2 elongations max per retrograde
+
+    # 3~4 retrogrades per year => 2 elongations per retrograde
+    # Mandatory to have a pair (East + West)
+    if (len(time_maxima) % 2) != 0:
+        raise ValueError('Date may be incorrect, could not find a pair of elongations for this retrograde (should have East and West elongations)')
+
     print(len(time_maxima), "6 maxima should be found")
 
     for ti, vi in zip(time_maxima, values):
