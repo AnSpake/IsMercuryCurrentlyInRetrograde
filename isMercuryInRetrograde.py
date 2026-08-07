@@ -48,6 +48,25 @@ def figure(years, mercury_prograde, mercury_retrograde):
     plt.show()
 
 
+def find_zero(func, t1, t2, precision=1e-8):
+    f1 = func(t1)
+    f2 = func(t2)
+
+    if f1 * f2 > 0:
+        raise ValueError("No sign changes in this interval")
+
+    while abs(t2 -t1) > precision:
+        tm = (t1 + t2) / 2
+        fm = func(tm)
+        if f1 * fm <= 0:
+            t2 = tm
+            f2 = fm
+        else:
+            t1 = tm
+            f1 = fm
+    return (t1 + t2) / 2
+
+
 def omega(earth_time):
     dt = 1 / 24
     t0 = TIME_SCALE.tt_jd(earth_time)
@@ -108,6 +127,12 @@ def find_mercury_max_elongation(year_zero, year_final):
     conj_t, conj_y = almanac.find_discrete(conj_t0, conj_t1, inf_conj)
 
     inf_conj_date = [conj_t[i] for i, j in enumerate(conj_y) if j == 0]
+
+    mercury_retrograde = find_zero(omega, time_maxima[0].tt, inf_conj_date[0].tt)
+    t_station = TIME_SCALE.tt_jd(mercury_retrograde)
+
+    mercury_direct = find_zero(omega, inf_conj_date[0].tt, time_maxima[1].tt)
+    t_direct = TIME_SCALE.tt_jd(mercury_direct)
 
     print(conj_t.utc_iso())
 
