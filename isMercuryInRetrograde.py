@@ -77,12 +77,6 @@ def find_mercury_max_elongation(time_scale, years):
     # Find when the planet is visible from the eart (after sunset = west) (before sunrise/dawn = eastern)
     lat, lon, distance = EARTH.at(time).observe(MERCURY).ecliptic_latlon()
 
-    # Epita school in paris suburb
-    paris_coord = skyfield.api.Topos('48.568380 N', '21.47808 W')
-    t1 = time_scale.utc(2024, 12, 24)
-    t2 = time_scale.utc(2025, 3, 9)
-    time_cp, values_cp = skyfield.searchlib.find_discrete(t1, t2, almanac.sunrise_sunset(PLANETS, paris_coord))
-
     # Compute inferior conjunction
     conj_t0 = time_scale.utc(year_zero, 1, 1)
     conj_t1 = time_scale.utc(year_final, 1, 1)
