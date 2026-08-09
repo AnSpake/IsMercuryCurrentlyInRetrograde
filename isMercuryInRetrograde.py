@@ -40,12 +40,21 @@ def get_days_from_leap_year(start_year, end_year):
     return leap_year
 
 
-def figure(years, mercury_prograde, mercury_retrograde):
+def figure_retrograde(years, longitude, retrogrades):
+    """
+    Graphic showing Mercury ecliptic longitude on the given time period
+    and highlights the found retrogrades period
+    """
     plt.figure()
-    plt.plot(years[:-1], mercury_prograde, '-g', linewidth=1)
-    plt.plot(years[:-1], mercury_retrograde, '-r', linewidth=3)
-    plt.ylim(0, 360)
-    plt.title("Mercury Ecliptic Longitude degrees AD 2018 to 2038")
+    plt.plot(years, longitude, color="green")
+
+    for retro, direct in retrogrades:
+        plt.axvspan(retro.utc_datetime().timetuple().tm_yday / 365 + retro.utc_datetime().year, \
+                    direct.utc_datetime().timetuple().tm_yday / 365 + direct.utc_datetime().year, color="red", alpha=0.3)
+    plt.title("Mercury Retrograde")
+    plt.xlabel("Year")
+    plt.ylabel("Ecliptic longitude (deg)")
+    plt.grid()
     plt.show()
 
 
@@ -169,6 +178,10 @@ def main():
     year_final = 2026
 
     years, longitude, retrogrades = find_mercury_max_elongation(year_zero, year_final)
+
+    longitude = np.unwrap(np.radians(longitude.degrees))
+    longitude = np.degrees(longitude)
+    figure_retrograde(years, longitude, retrogrades)
 
     return 0
 
