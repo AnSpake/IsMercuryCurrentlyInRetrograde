@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import matplotlib.pyplot as plt
 import matplotlib.dates
 import numpy as np
@@ -18,33 +17,34 @@ TIME_SCALE = skyfield.api.load.timescale()
 
 
 # Steps:
-# Calculate the apparent angular position of Mercury from Earth in ecliptic coordinates
-# Finde places where the ecliptic longitude is decreasing
+# Calculate the apparent angular position of Mercury from Earth in ecliptic coordinates.
+# Find places where the ecliptic longitude is decreasing until it reaches 0/change sign.
 
-# Subtract the position of Earth from the position of Mercury
-# Express resulted vector in spherical coordinates
-
-
-# Retrograde (from the Earth, inner planet):
-# Move from Greatest ESTERN Elongation {through Inferior Conjuction} to Greatest WESTERN Elongation
+# Retrograde (can only be observed from the Earth, inner planets only):
+# Move from Greatest ESTERN Elongation {through Inferior Conjuction} to Greatest WESTERN Elongation.
 
 
-def get_days_from_leap_year(start_year, end_year):
+def figure_mercury_elongation_in_degrees(time):
     """
-    Returns how many days we have to count from all the leap years
+    Graphic showing Mercury elongations in degrees for the given time period.
     """
-    leap_year = 0
-    for i in range(start_year, end_year + 1):
-        if calendar.isleap(i):
-            leap_year += 1
-    return leap_year
+    fig, ax = plt.subplots(figsize=(5, 2))
+    ax.plot(time.J, find_mercury_elongation_degrees(time))
+    ax.set(title="Elongation of Mercury in degrees", xlabel="Year")
+    ax.grid()
+    fig.tight_layout()
+    fig.show()
 
 
 def figure_retrograde(years, longitude, retrogrades):
     """
     Graphic showing Mercury ecliptic longitude on the given time period
-    and highlights the found retrogrades period
+    and highlights the found retrogrades period.
     """
+    # Prep longitude values so it can be used in the plot
+    longitude = np.unwrap(np.radians(longitude.degrees))
+    longitude = np.degrees(longitude)
+
     plt.figure()
     plt.plot(years, longitude, color="green")
 
@@ -58,7 +58,26 @@ def figure_retrograde(years, longitude, retrogrades):
     plt.show()
 
 
+def get_days_from_leap_year(start_year, end_year):
+    """
+    Returns how many days we have to count from all the leap years.
+    """
+    leap_year = 0
+    for i in range(start_year, end_year + 1):
+        if calendar.isleap(i):
+            leap_year += 1
+    return leap_year
+
+
 def omega(earth_time):
+    """
+    Omega function => d0/dt < 0
+    The planet is in retrograde motion, exclusively from the Earth perspective,
+    when the planets orbit anticlockwise in the coordinate system.
+    When omega > 0 => the planet is "going forward" / direct.
+    When omega = 0 => the planet is at a stationary point.
+    When omega < 0 => the planet is "going backwards" / retrograde.
+    """
     dt = 1 / 24
     t0 = TIME_SCALE.tt_jd(earth_time)
     t1 = TIME_SCALE.tt_jd(earth_time + dt)
@@ -72,18 +91,25 @@ def omega(earth_time):
 
 
 def find_mercury_elongation_degrees(time):
+    """
+    Compute the elongation of Mercury in degrees.
+    The elongation is the "apparent" angular separation between the Sun and the relevant Planet,
+    as viewed from the Earth.
+    This helps because we need to find the maximum elongations (East and West),
+    in order to focus our search of the retrogrades.
+    """
     sun = PLANETS["sun"]
     sun_apparent_pos = EARTH.at(time).observe(sun).apparent()
     mercury_apparent_pos = EARTH.at(time).observe(MERCURY).apparent()
     return sun_apparent_pos.separation_from(mercury_apparent_pos).degrees
 
+
 def find_mercury_max_elongation(year_zero, year_final):
-
-    days = np.array(range((365 + (get_days_from_leap_year(year_zero, year_final) * (year_final - year_zero)))))
-    years = year_zero + days / (365 + get_days_from_leap_year(year_zero, year_final))
-
-    time = TIME_SCALE.utc(year_zero, 1, days)
-
+    """
+    Given the range of mercury elongations, find maximum points.
+    The output comes in pair and in order East then West.
+    No sanity check if the given time period is less then a year.
+    """
     find_mercury_elongation_degrees.rough_period = 116.0
     time_zero = TIME_SCALE.utc(year_zero)
     time_final = TIME_SCALE.utc(year_final)
@@ -94,25 +120,19 @@ def find_mercury_max_elongation(year_zero, year_final):
     if (len(time_maxima) % 2) != 0:
         raise ValueError('Date may be incorrect, could not find a pair of elongations for this retrograde (should have East and West elongations)')
 
+    return time_maxima
 
-    for ti, vi in zip(time_maxima, values):
-        print(ti.utc_strftime("%Y-%m-%d %H:%M "), "%.2f" % vi, "degrees in elongation")
-
-    # TODO: western or eastern
-    # Find if planet is visible from the earth
-    # Find when the planet is visible from the eart (after sunset = west) (before sunrise/dawn = eastern)
-    lat, lon, distance = EARTH.at(time).observe(MERCURY).ecliptic_latlon()
-
+def find_inferior_conjunction(year_zero, year_final):
     """
     The moment at which a planet is in opposition/conjunction with the Sun is
-    when their ecliptic longitudes are at 0 or 180 degrees difference
+    when their ecliptic longitudes are at 0 or 180 degrees difference.
 
     For inner planets like Mercury: they only ever experience conjunctions with
-    the Sun from Earth PoV and can never be in oppositions
+    the Sun from Earth PoV and can never be in oppositions.
 
-    conj_y reads as follows
-    -> 0 indicates an inferior conjunction
-    -> 1 indicates a superior conjunction
+    conj_y reads as follows:
+    -> 0 indicates an inferior conjunction.
+    -> 1 indicates a superior conjunction.
     """
     conj_t0 = TIME_SCALE.utc(year_zero, 1, 1)
     conj_t1 = TIME_SCALE.utc(year_final, 1, 1)
@@ -120,28 +140,37 @@ def find_mercury_max_elongation(year_zero, year_final):
     conj_t, conj_y = almanac.find_discrete(conj_t0, conj_t1, inf_conj)
 
     inf_conj_date = [conj_t[i] for i, j in enumerate(conj_y) if j == 0]
+    return inf_conj_date
+
+
+def find_mercury_retrogrades(year_zero, year_final):
+    """
+    Compute mercury orbit cycles viewed from the Earth.
+    Find the retrograde and direct period of Mercury by searching for the
+    stationary point (angular speed = 0).
+    Retrograde happens between the Maximum East elongation point to the inferior conjunction point.
+    Mercury goes Direct again, between the inferior conjunction point to the Maximum West elongation point.
+    """
+    leap_year = get_days_from_leap_year(year_zero, year_final)
+    days = np.array(range((365 + leap_year) * (year_final - year_zero)))
+    years = year_zero + days / (365 + get_days_from_leap_year(year_zero, year_final))
+    time = TIME_SCALE.utc(year_zero, 1, days)
+
+    mercury_max_elong = find_mercury_max_elongation(year_zero, year_final)
+    mercury_east_elong = mercury_max_elong[0::2]
+    mercury_west_elong = mercury_max_elong[1::2]
+
+    mercury_inf_conj = find_inferior_conjunction(year_zero, year_final)
+    _, lon, _ = EARTH.at(time).observe(MERCURY).ecliptic_latlon()
 
     mercury_cycles = []
-    for i, conj_iter in enumerate(inf_conj_date):
-        east_elong = time_maxima[2 * i]
-        west_elong = time_maxima[(2 * i) + 1]
-
+    for east_elong, west_elong, conj_iter in zip(mercury_east_elong, mercury_west_elong, mercury_inf_conj):
         mercury_retrograde = brentq(omega, east_elong.tt, conj_iter.tt)
         mercury_direct = brentq(omega, conj_iter.tt, west_elong.tt)
 
         mercury_cycles.append((TIME_SCALE.tt_jd(mercury_retrograde), TIME_SCALE.tt_jd(mercury_direct)))
 
-    print(conj_t.utc_iso())
-
-    fig, ax = plt.subplots(figsize=(5, 2))
-    ax.plot(time.J, find_mercury_elongation_degrees(time))
-    ax.set(title="Elongation of Mercury in degrees", xlabel="Year")
-    ax.grid()
-    fig.tight_layout()
-    fig.show()
-
     return years, lon, mercury_cycles
-
 
 def compute_retrograde():
 
@@ -177,10 +206,8 @@ def main():
     year_zero = 2025
     year_final = 2026
 
-    years, longitude, retrogrades = find_mercury_max_elongation(year_zero, year_final)
+    years, longitude, retrogrades = find_mercury_retrogrades(year_zero, year_final)
 
-    longitude = np.unwrap(np.radians(longitude.degrees))
-    longitude = np.degrees(longitude)
     figure_retrograde(years, longitude, retrogrades)
 
     return 0
