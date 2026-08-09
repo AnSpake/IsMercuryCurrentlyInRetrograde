@@ -16,14 +16,6 @@ MERCURY = PLANETS["mercury"]
 TIME_SCALE = skyfield.api.load.timescale()
 
 
-# Steps:
-# Calculate the apparent angular position of Mercury from Earth in ecliptic coordinates.
-# Find places where the ecliptic longitude is decreasing until it reaches 0/change sign.
-
-# Retrograde (can only be observed from the Earth, inner planets only):
-# Move from Greatest ESTERN Elongation {through Inferior Conjuction} to Greatest WESTERN Elongation.
-
-
 def figure_mercury_elongation_in_degrees(time):
     """
     Graphic showing Mercury elongations in degrees for the given time period.
