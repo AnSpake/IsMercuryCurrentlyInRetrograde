@@ -8,6 +8,7 @@ import calendar
 import skyfield.api
 from skyfield import almanac
 from scipy.optimize import brentq
+import matplotlib.ticker as mticker
 
 
 PLANETS = skyfield.api.load("de421.bsp")
@@ -28,25 +29,46 @@ def figure_mercury_elongation_in_degrees(time):
     fig.show()
 
 
-def figure_retrograde(years, longitude, retrogrades):
+def figure_retrograde(time, years, longitude, retrogrades):
     """
     Graphic showing Mercury ecliptic longitude on the given time period
     and highlights the found retrogrades period.
     """
     # Prep longitude values so it can be used in the plot
-    longitude = np.unwrap(np.radians(longitude.degrees))
-    longitude = np.degrees(longitude)
+    long = longitude.degrees.copy()
+    wrap_points = np.where(np.abs(np.diff(long)) > 300)[0]
 
-    plt.figure()
-    plt.plot(years, longitude, color="green")
-
+    is_retro = np.zeros(len(years), dtype=bool)
     for retro, direct in retrogrades:
-        plt.axvspan(retro.utc_datetime().timetuple().tm_yday / 365 + retro.utc_datetime().year, \
-                    direct.utc_datetime().timetuple().tm_yday / 365 + direct.utc_datetime().year, color="red", alpha=0.3)
-    plt.title("Mercury Retrograde")
-    plt.xlabel("Year")
-    plt.ylabel("Ecliptic longitude (deg)")
-    plt.grid()
+        t0 = np.searchsorted(time.tt, retro.tt)
+        t1 = np.searchsorted(time.tt, direct.tt)
+        is_retro[t0:t1 + 1] = True
+
+    plot_y = years.copy()
+    plot_l = long.copy()
+    plot_r = is_retro.copy()
+    for i in sorted(wrap_points, reverse=True):
+        x_mid = (years[i] + years[i + 1]) / 2
+        plot_y = np.insert(plot_y, i + 1, x_mid)
+        plot_l = np.insert(plot_l, i + 1, np.nan)
+        plot_r = np.insert(plot_r, i + 1, False)
+
+    direct_line = np.where(plot_r, np.nan, plot_l)
+    retro_line = np.where(plot_r, plot_l, np.nan)
+
+    fig, ax = plt.subplots()
+    ax.plot(plot_y, direct_line, color="green")
+    ax.plot(plot_y, retro_line, color="red", linewidth=2)
+
+    ax.xaxis.set_major_locator(mticker.MultipleLocator(2))
+    ax.set_xlim(years.min(), years.max())
+    ax.set_ylim(0, 360)
+    fig.autofmt_xdate()
+
+    ax.set_title("Mercury Retrograde")
+    ax.set_xlabel("Year")
+    ax.set_ylabel("Ecliptic longitude (deg)")
+    ax.grid()
     plt.show()
 
 
@@ -162,7 +184,7 @@ def find_mercury_retrogrades(year_zero, year_final):
 
         mercury_cycles.append((TIME_SCALE.tt_jd(mercury_retrograde), TIME_SCALE.tt_jd(mercury_direct)))
 
-    return years, lon, mercury_cycles
+    return time, years, lon, mercury_cycles
 
 
 def main():
@@ -172,9 +194,9 @@ def main():
     year_zero = 2025
     year_final = 2026
 
-    years, longitude, retrogrades = find_mercury_retrogrades(year_zero, year_final)
+    time, years, longitude, retrogrades = find_mercury_retrogrades(year_zero, year_final)
 
-    figure_retrograde(years, longitude, retrogrades)
+    figure_retrograde(time, years, longitude, retrogrades)
 
     return 0
 
