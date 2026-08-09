@@ -2,3 +2,4 @@ numpy==2.5.1
 de421==2008.1
 matplotlib==3.11.1
 skyfield==1.54
+scipy==1.18.0

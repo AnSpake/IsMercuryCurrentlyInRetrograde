@@ -8,6 +8,7 @@ import sys
 import calendar
 import skyfield.api
 from skyfield import almanac
+from scipy.optimize import brentq
 
 
 PLANETS = skyfield.api.load("de421.bsp")
@@ -46,25 +47,6 @@ def figure(years, mercury_prograde, mercury_retrograde):
     plt.ylim(0, 360)
     plt.title("Mercury Ecliptic Longitude degrees AD 2018 to 2038")
     plt.show()
-
-
-def find_zero(func, t1, t2, precision=1e-8):
-    f1 = func(t1)
-    f2 = func(t2)
-
-    if f1 * f2 > 0:
-        raise ValueError("No sign changes in this interval")
-
-    while abs(t2 -t1) > precision:
-        tm = (t1 + t2) / 2
-        fm = func(tm)
-        if f1 * fm <= 0:
-            t2 = tm
-            f2 = fm
-        else:
-            t1 = tm
-            f1 = fm
-    return (t1 + t2) / 2
 
 
 def omega(earth_time):
@@ -135,8 +117,8 @@ def find_mercury_max_elongation(year_zero, year_final):
         east_elong = time_maxima[2 * i]
         west_elong = time_maxima[(2 * i) + 1]
 
-        mercury_retrograde = find_zero(omega, east_elong.tt, conj_iter.tt)
-        mercury_direct = find_zero(omega, conj_iter.tt, west_elong.tt)
+        mercury_retrograde = brentq(omega, east_elong.tt, conj_iter.tt)
+        mercury_direct = brentq(omega, conj_iter.tt, west_elong.tt)
 
         mercury_cycles.append((TIME_SCALE.tt_jd(mercury_retrograde), TIME_SCALE.tt_jd(mercury_direct)))
 
