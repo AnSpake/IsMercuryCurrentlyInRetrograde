@@ -48,6 +48,19 @@ def figure(years, mercury_prograde, mercury_retrograde):
     plt.show()
 
 
+def omega(earth_time):
+    dt = 1 / 24
+    t0 = TIME_SCALE.tt_jd(earth_time)
+    t1 = TIME_SCALE.tt_jd(earth_time + dt)
+
+    lat0, long0, dist0 = EARTH.at(t0).observe(MERCURY).ecliptic_latlon()
+    lat1, long1, dist1 = EARTH.at(t1).observe(MERCURY).ecliptic_latlon()
+
+    dlon = (long1.degrees - long0.degrees + 180) % 360 - 180
+    omega = dlon / dt
+    return omega
+
+
 def find_mercury_elongation_degrees(time):
     sun = PLANETS["sun"]
     sun_apparent_pos = EARTH.at(time).observe(sun).apparent()
