@@ -124,7 +124,7 @@ def find_mercury_max_elongation(year_zero, year_final):
     The output comes in pair and in order East then West.
     No sanity check if the given time period is less then a year.
     """
-    find_mercury_elongation_degrees.rough_period = 116.0
+    find_mercury_elongation_degrees.step_days = 10.0
     time_zero = TIME_SCALE.utc(year_zero)
     time_final = TIME_SCALE.utc(year_final)
     time_maxima, values = skyfield.searchlib.find_maxima(time_zero, time_final, find_mercury_elongation_degrees)
