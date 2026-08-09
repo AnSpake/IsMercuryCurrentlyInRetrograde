@@ -96,8 +96,8 @@ def omega(earth_time):
     t0 = TIME_SCALE.tt_jd(earth_time)
     t1 = TIME_SCALE.tt_jd(earth_time + dt)
 
-    lat0, long0, dist0 = EARTH.at(t0).observe(MERCURY).ecliptic_latlon()
-    lat1, long1, dist1 = EARTH.at(t1).observe(MERCURY).ecliptic_latlon()
+    lat0, long0, dist0 = EARTH.at(t0).observe(MERCURY).apparent().ecliptic_latlon()
+    lat1, long1, dist1 = EARTH.at(t1).observe(MERCURY).apparent().ecliptic_latlon()
 
     dlon = (long1.degrees - long0.degrees + 180) % 360 - 180
     omega = dlon / dt
@@ -175,7 +175,7 @@ def find_mercury_retrogrades(year_zero, year_final):
     mercury_west_elong = mercury_max_elong[1::2]
 
     mercury_inf_conj = find_inferior_conjunction(year_zero, year_final)
-    _, lon, _ = EARTH.at(time).observe(MERCURY).ecliptic_latlon()
+    _, lon, _ = EARTH.at(time).observe(MERCURY).apparent().ecliptic_latlon()
 
     mercury_cycles = []
     for east_elong, west_elong, conj_iter in zip(mercury_east_elong, mercury_west_elong, mercury_inf_conj):
