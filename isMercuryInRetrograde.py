@@ -172,32 +172,6 @@ def find_mercury_retrogrades(year_zero, year_final):
 
     return years, lon, mercury_cycles
 
-def compute_retrograde():
-
-    year_zero = 2018
-    year_final = 2038
-    days = np.linspace(1, (year_final - year_zero) * 365, 10000)
-    years = year_zero + days / (365 + get_days_from_leap_year(year_zero, year_final))
-
-    time = TIME_SCALE.utc(year_zero, 1, days)
-
-    find_mercury_max_elongation(year_zero, year_final)
-
-    latitude, longitude, distance = EARTH.at(time).observe(MERCURY).ecliptic_latlon()
-
-    longds = (180.0 / np.pi) * longitude.radians
-    londel = longds[1:] - longds[:-1]
-
-    londel[londel < -300] += 360.0
-    londel[londel > +300] -= 360.0
-
-    prograde = londel > 0.0
-    mercury_prograde = longds.copy()[:-1]
-    mercury_retrograde = longds.copy()[:-1]
-
-    mercury_prograde[~prograde] = np.nan
-    mercury_retrograde[prograde] = np.nan
-    return years, mercury_prograde, mercury_retrograde
 
 def main():
     """
