@@ -216,8 +216,8 @@ def main():
     """
     Main function
     """
-    year_zero = 2025
-    year_final = 2026
+    year_zero = 2018
+    year_final = 2038
 
     time, years, mercury_long, retrogrades = find_mercury_retrogrades(year_zero, year_final)
 
