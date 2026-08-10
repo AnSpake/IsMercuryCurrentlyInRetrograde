@@ -7,6 +7,7 @@ import sys
 import calendar
 import skyfield.api
 from skyfield import almanac
+from skyfield.framelib import ecliptic_frame
 from scipy.optimize import brentq
 import matplotlib.ticker as mticker
 
@@ -118,6 +119,23 @@ def find_mercury_elongation_degrees(time):
     return sun_apparent_pos.separation_from(mercury_apparent_pos).degrees
 
 
+def find_elongation_direction(time):
+    """
+    Compute on which side of the Sun, Mercury is.
+    In order to find if the observed elongation is East or West (they come in pair).
+    The correct order matter for later computation, so we need to trunk the extra one,
+    depending on the border of the years where it happens.
+    """
+    sun = PLANETS["sun"]
+    earth_time = EARTH.at(time)
+    _, slong, _ = earth_time.observe(sun).apparent().ecliptic_latlon()
+    _, mlong, _ = earth_time.observe(MERCURY).apparent().ecliptic_latlon()
+
+    long_ecliptic_diff = (mlong.degrees - slong.degrees + 180) % 360 - 180
+
+    return long_ecliptic_diff > 0
+
+
 def find_mercury_max_elongation(year_zero, year_final):
     """
     Given the range of mercury elongations, find maximum points.
@@ -127,14 +145,22 @@ def find_mercury_max_elongation(year_zero, year_final):
     find_mercury_elongation_degrees.step_days = 10.0
     time_zero = TIME_SCALE.utc(year_zero)
     time_final = TIME_SCALE.utc(year_final)
-    time_maxima, values = skyfield.searchlib.find_maxima(time_zero, time_final, find_mercury_elongation_degrees)
+    time_maxima, _ = skyfield.searchlib.find_maxima(time_zero, time_final, find_mercury_elongation_degrees)
+
+    is_east = [find_elongation_direction(t) for t in time_maxima]
+    start = is_east.index(True)
+    end = len(is_east) - is_east[::-1].index(False)
+    time_maxima = time_maxima[start:end]
+
+    mercury_east_elong = time_maxima[0::2]
+    mercury_west_elong = time_maxima[1::2]
 
     # 3~4 retrogrades per year => 2 elongations per retrograde
     # Mandatory to have a pair (East + West)
-    if (len(time_maxima) % 2) != 0:
+    if (len(mercury_east_elong) + len(mercury_west_elong)) % 2 != 0:
         raise ValueError('Date may be incorrect, could not find a pair of elongations for this retrograde (should have East and West elongations)')
 
-    return time_maxima
+    return mercury_east_elong, mercury_west_elong
 
 def find_inferior_conjunction(year_zero, year_final):
     """
@@ -170,12 +196,11 @@ def find_mercury_retrogrades(year_zero, year_final):
     years = year_zero + days / (365 + get_days_from_leap_year(year_zero, year_final))
     time = TIME_SCALE.utc(year_zero, 1, days)
 
-    mercury_max_elong = find_mercury_max_elongation(year_zero, year_final)
-    mercury_east_elong = mercury_max_elong[0::2]
-    mercury_west_elong = mercury_max_elong[1::2]
+    _, mlong, _ = EARTH.at(time).observe(MERCURY).apparent().ecliptic_latlon()
+
+    mercury_east_elong, mercury_west_elong = find_mercury_max_elongation(year_zero, year_final)
 
     mercury_inf_conj = find_inferior_conjunction(year_zero, year_final)
-    _, lon, _ = EARTH.at(time).observe(MERCURY).apparent().ecliptic_latlon()
 
     mercury_cycles = []
     for east_elong, west_elong, conj_iter in zip(mercury_east_elong, mercury_west_elong, mercury_inf_conj):
@@ -184,7 +209,7 @@ def find_mercury_retrogrades(year_zero, year_final):
 
         mercury_cycles.append((TIME_SCALE.tt_jd(mercury_retrograde), TIME_SCALE.tt_jd(mercury_direct)))
 
-    return time, years, lon, mercury_cycles
+    return time, years, mlong, mercury_cycles
 
 
 def main():
@@ -194,9 +219,9 @@ def main():
     year_zero = 2025
     year_final = 2026
 
-    time, years, longitude, retrogrades = find_mercury_retrogrades(year_zero, year_final)
+    time, years, mercury_long, retrogrades = find_mercury_retrogrades(year_zero, year_final)
 
-    figure_retrograde(time, years, longitude, retrogrades)
+    figure_retrograde(time, years, mercury_long, retrogrades)
 
     return 0
 
