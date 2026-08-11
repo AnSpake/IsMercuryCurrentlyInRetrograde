@@ -81,5 +81,5 @@ which is supposed to optimize this type of search.
 
 Next todo:
 - [ ] Argparse
-- [ ] Answer the question bro (almost there)
+- [X] Answer the question bro (almost there)
 - [ ] Find in which Astro sign, mercury is retrograding to

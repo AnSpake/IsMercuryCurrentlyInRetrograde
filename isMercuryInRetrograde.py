@@ -6,6 +6,7 @@ import de421
 import sys
 import calendar
 import argparse
+from datetime import datetime
 import skyfield.api
 from skyfield import almanac
 from skyfield.framelib import ecliptic_frame
@@ -213,6 +214,24 @@ def find_mercury_retrogrades(year_zero, year_final):
     return time, years, mlong, mercury_cycles
 
 
+def print_is_mercury_in_retrograde_today(retrogrades):
+    """
+    Take system timezone and check if today system time happens to take place
+    during a mercury retrograde
+    """
+    tz = datetime.now().astimezone().tzinfo
+    today = datetime.now().astimezone(tz)
+
+    curr_retro = next(((rstart, rend) for rstart, rend in retrogrades \
+        if rstart.utc_datetime().astimezone(tz) <= today <= rend.utc_datetime().astimezone(tz)), None)
+
+    if curr_retro:
+        rstart_dt, rend_dt = (dt.utc_datetime().astimezone(tz) for dt in curr_retro)
+        print(f"Mercury is in retrograde today ! (Start: {rstart_dt:%Y-%m-%d %H:%M} - End: {rend_dt:%Y-%m-%d %H:%M})")
+    else:
+        print(f"Mercury is not in retrograde as of today: {today:%Y-%m-%d %H:%M}")
+
+
 def parse_args():
     """
     Parse CLI arguments
@@ -228,7 +247,7 @@ def parse_args():
     args = parser.parse_args()
 
     if args.today:
-        args.year_start = datetime.date.today().year
+        args.year_start = datetime.today().year
         args.year_end = args.year_start + 1
 
     return args
@@ -242,7 +261,10 @@ def main():
 
     time, years, mercury_long, retrogrades = find_mercury_retrogrades(args.year_start, args.year_end)
 
-    figure_retrograde(time, years, mercury_long, retrogrades)
+    if args.today:
+        print_is_mercury_in_retrograde_today(retrogrades)
+    else:
+        figure_retrograde(time, years, mercury_long, retrogrades)
 
     return 0
 
