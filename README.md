@@ -80,6 +80,7 @@ which is supposed to optimize this type of search.
 | Astro Sign | TODO |  
 
 Next todo:
-- [ ] Argparse
-- [X] Answer the question bro (almost there)
+- [X] Argparse
+- [X] Answer the question bro
 - [ ] Find in which Astro sign, mercury is retrograding to
+- [ ] Also show the elongation periods and marks the inferior conjunction in the figure
