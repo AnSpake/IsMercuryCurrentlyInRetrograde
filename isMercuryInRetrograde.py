@@ -1,16 +1,13 @@
 #!/usr/bin/env python3
-import matplotlib.pyplot as plt
-import matplotlib.dates
-import numpy as np
-import de421
 import sys
 import calendar
 import argparse
 from datetime import datetime
+import numpy as np
 import skyfield.api
 from skyfield import almanac
-from skyfield.framelib import ecliptic_frame
 from scipy.optimize import brentq
+import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
 
 
@@ -100,12 +97,11 @@ def omega(earth_time):
     t0 = TIME_SCALE.tt_jd(earth_time)
     t1 = TIME_SCALE.tt_jd(earth_time + dt)
 
-    lat0, long0, dist0 = EARTH.at(t0).observe(MERCURY).apparent().ecliptic_latlon()
-    lat1, long1, dist1 = EARTH.at(t1).observe(MERCURY).apparent().ecliptic_latlon()
+    _, long0, _ = EARTH.at(t0).observe(MERCURY).apparent().ecliptic_latlon()
+    _, long1, _ = EARTH.at(t1).observe(MERCURY).apparent().ecliptic_latlon()
 
     dlon = (long1.degrees - long0.degrees + 180) % 360 - 180
-    omega = dlon / dt
-    return omega
+    return dlon / dt
 
 
 def find_mercury_elongation_degrees(time):
@@ -162,6 +158,7 @@ def find_mercury_max_elongation(year_zero, year_final):
         raise ValueError('Date may be incorrect, could not find a pair of elongations for this retrograde (should have East and West elongations)')
 
     return mercury_east_elong, mercury_west_elong
+
 
 def find_inferior_conjunction(year_zero, year_final):
     """
@@ -221,7 +218,7 @@ def print_is_mercury_in_retrograde_today(retrogrades):
     tz = datetime.now().astimezone().tzinfo
     today = datetime.now().astimezone(tz)
 
-    curr_retro = next(((rstart, rend) for rstart, rend in retrogrades \
+    curr_retro = next(((rstart, rend) for rstart, rend in retrogrades
         if rstart.utc_datetime().astimezone(tz) <= today <= rend.utc_datetime().astimezone(tz)), None)
 
     if curr_retro:
