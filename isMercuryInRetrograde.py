@@ -5,6 +5,7 @@ import numpy as np
 import de421
 import sys
 import calendar
+import argparse
 import skyfield.api
 from skyfield import almanac
 from skyfield.framelib import ecliptic_frame
@@ -212,14 +213,34 @@ def find_mercury_retrogrades(year_zero, year_final):
     return time, years, mlong, mercury_cycles
 
 
+def parse_args():
+    """
+    Parse CLI arguments
+    """
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--year-start', required=False, type=int, default=2018,
+                        help="Year to begin sampling")
+    parser.add_argument('--year-end', required=False, type=int, default=2038,
+                        help="Year to end sampling")
+    parser.add_argument('--today', required=False, action="store_true", default=False,
+                        help="Check if Mercury is in retrograde today")
+
+    args = parser.parse_args()
+
+    if args.today:
+        args.year_start = datetime.date.today().year
+        args.year_end = args.year_start + 1
+
+    return args
+
+
 def main():
     """
     Main function
     """
-    year_zero = 2018
-    year_final = 2038
+    args = parse_args()
 
-    time, years, mercury_long, retrogrades = find_mercury_retrogrades(year_zero, year_final)
+    time, years, mercury_long, retrogrades = find_mercury_retrogrades(args.year_start, args.year_end)
 
     figure_retrograde(time, years, mercury_long, retrogrades)
 
