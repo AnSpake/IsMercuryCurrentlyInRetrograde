@@ -15,6 +15,7 @@ import matplotlib.ticker as mticker
 
 
 PLANETS = skyfield.api.load("de421.bsp")
+SUN = PLANETS["sun"]
 EARTH = PLANETS["earth"]
 MERCURY = PLANETS["mercury"]
 TIME_SCALE = skyfield.api.load.timescale()
@@ -115,10 +116,9 @@ def find_mercury_elongation_degrees(time):
     This helps because we need to find the maximum elongations (East and West),
     in order to focus our search of the retrogrades.
     """
-    sun = PLANETS["sun"]
-    sun_apparent_pos = EARTH.at(time).observe(sun).apparent()
-    mercury_apparent_pos = EARTH.at(time).observe(MERCURY).apparent()
-    return sun_apparent_pos.separation_from(mercury_apparent_pos).degrees
+    sun_pos = EARTH.at(time).observe(SUN).apparent()
+    mercury_pos = EARTH.at(time).observe(MERCURY).apparent()
+    return sun_pos.separation_from(mercury_pos).degrees
 
 
 def find_elongation_direction(time):
@@ -128,9 +128,8 @@ def find_elongation_direction(time):
     The correct order matter for later computation, so we need to trunk the extra one,
     depending on the border of the years where it happens.
     """
-    sun = PLANETS["sun"]
     earth_time = EARTH.at(time)
-    _, slong, _ = earth_time.observe(sun).apparent().ecliptic_latlon()
+    _, slong, _ = earth_time.observe(SUN).apparent().ecliptic_latlon()
     _, mlong, _ = earth_time.observe(MERCURY).apparent().ecliptic_latlon()
 
     long_ecliptic_diff = (mlong.degrees - slong.degrees + 180) % 360 - 180
